@@ -1,8 +1,9 @@
-//connecting model with controller
 const {User}= require("../models/userModel");
 const mongoose=require("mongoose")
 const {hashPassword,validatePassword}= require("../utils/password")
 const {getToken}=require("../utils/jwtToken");
+const {forgetPasswordToken}=require("../utils/forgetPassToken")
+const sendMail=require("../utils/mail")
 
 // creating user
 const createUser = async (req,res)=>{
@@ -33,25 +34,6 @@ const createUser = async (req,res)=>{
 }
 
 // singinup user
-// const loginUser =async (req,res)=>{
-//     const email= req.body.emailId;
-//     const findUser = await User.findOne({emailId:email});
-//     if(findUser){
-//         if(validatePassword(req.body.password,findUser.password))  
-//           {
-//             const token = await getToken(findUser._id);
-//             const user = await User.findOneAndUpdate({emailId:email},{ $push: { tokens: { token } } },{new:true});
-//             // console.log(user);
-//             res.cookie("userSignedIn",token,{ httpOnly:true })
-//             console.log("cookie-sent")
-//             res.json(user);
-//           } 
-//         else    res.json({msg:"password is incorrect",status:"false"})
-//     }
-//     else{
-//         res.json({msg:"user not found",status:"true"})
-//     }
-// }
 const loginUser =async (req,res)=>{
     const user=req.user
     const payload={
@@ -130,4 +112,37 @@ const unblockUser = async(req,res)=>{
     res.json({msg:"user un-blocked"});
 }
 
-module.exports= {createUser,loginUser,alluser,getUser,dltUser,updateUser,blockUser,unblockUser};
+//FORGET PASSWORD MAIL
+const sendForgetPasswordMail = async(req,res)=>{
+    try {
+    const emailid= await req.query.emailId;
+    const user = await User.findOne({emailId:emailid});
+    const token = await forgetPasswordToken(user.id);
+    data={
+       email:"gaurav.gupta7753@gmail.com",
+       subject:"Forget your password",
+       text: "hey user",
+       html:`Follow this <a href="https://localhost:3000/changePassword/:${token}">link</a> to change your password.`
+    }
+    await sendMail(data);
+    res.json({msg:"mail send. only vaild for 10 minutes"})
+}
+    catch (error) {
+        console.log(error)
+}
+}
+
+//change password
+const changePassword=async(req,res)=>{
+    const token = req.params.token;
+    try {
+        const decoded = await jwt.verify(token,process.env.SECRETKEY);
+        const hpassword = await hashPassword(req.body.password);
+        const user= User.findByIdAndUpdate(decoded.payload.id,{password:hpassword},{new:true});
+        res.json(user);
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+module.exports= {createUser,loginUser,alluser,getUser,dltUser,updateUser,blockUser,unblockUser,sendForgetPasswordMail,changePassword};

@@ -3,7 +3,7 @@ const mongoose=require("mongoose");
 
 const isAdmin =async(req,res,next)=>{
     try {
-        const id =req.userId;
+    const id =await req.userPayload.payload.id;
     const user = await User.findOne({_id:id});
     if(user.role==="admin"){
         next();

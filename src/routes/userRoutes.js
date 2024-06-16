@@ -1,7 +1,9 @@
 const express =require("express");
 const router= express.Router();
-const {createUser,loginUser,alluser,dltUser,getUser,updateUser,blockUser,unblockUser}= require("../controllers/user")
-const {jwtAuthMiddleware}=require("../middlewares/jwt_auth")
+const {createUser,loginUser,alluser,dltUser,getUser,updateUser,blockUser,unblockUser, sendForgetPasswordMail, changePassword}= require("../controllers/user")
+
+//middlewares
+const {jwtAuthMiddleware}=require("../middlewares/jwt_auth");
 const {isAdmin}= require("../middlewares/isadmin");
 
 //authentication
@@ -19,6 +21,11 @@ router.delete("/dltUser/:id",jwtAuthMiddleware,dltUser);
 router.put("/updateUser/:id",jwtAuthMiddleware,updateUser);
 router.put("/block-user",jwtAuthMiddleware,isAdmin,blockUser); 
 router.put("/unblock-user",jwtAuthMiddleware,isAdmin,unblockUser);
+router.post("/forgetPasswordMAil",sendForgetPasswordMail);
+router.post("/changePassword/:token",changePassword);
+
+
+
 
 
 module.exports=router;
