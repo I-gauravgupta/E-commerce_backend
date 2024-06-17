@@ -12,6 +12,8 @@ app.use(express.json());
 const user_router = require("./routes/userRoutes");
 const product_router =require("./routes/productRoutes");
 const blog_router = require("./routes/blogRoutes");
+const category_router = require("./routes/prodCategoryRoutes");
+app.use("/prodCategory",category_router);
 app.use("/blog",blog_router)
 app.use("/product",product_router);
 app.use(user_router);
