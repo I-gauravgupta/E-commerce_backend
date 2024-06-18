@@ -12,8 +12,10 @@ app.use(express.json());
 const user_router = require("./routes/userRoutes");
 const product_router =require("./routes/productRoutes");
 const blog_router = require("./routes/blogRoutes");
-const category_router = require("./routes/prodCategoryRoutes");
-app.use("/prodCategory",category_router);
+const prod_category_router = require("./routes/prodCategoryRoutes");
+const blog_category_router = require("./routes/blogCategoryRoutes");
+app.use("/blogCategory",blog_category_router);
+app.use("/prodCategory",prod_category_router);
 app.use("/blog",blog_router)
 app.use("/product",product_router);
 app.use(user_router);
