@@ -15,6 +15,8 @@ const blog_router = require("./routes/blogRoutes");
 const prod_category_router = require("./routes/prodCategoryRoutes");
 const blog_category_router = require("./routes/blogCategoryRoutes");
 const brand_router = require("./routes/brandRoutes");
+const coupan_router=require("./routes/coupanRoutes")
+app.use("/coupan",coupan_router)
 app.use("/brand",brand_router);
 app.use("/blogCategory",blog_category_router);
 app.use("/prodCategory",prod_category_router);
