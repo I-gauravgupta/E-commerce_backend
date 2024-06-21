@@ -3,6 +3,10 @@ const slugify = require("slugify");
 const isValidId= require("../utils/idValidation");
 // const mongoose=require("mongoose")
 const {User}= require("../models/userModel")
+const {uploadOnCloudinary}=require("../utils/cloudinary")
+const {productImageResize} =require("../middlewares/uploadImage");
+const { response } = require("express");
+const path = require("path")
 
 //creatimg product 
 const createProduct =async(req,res)=>{
@@ -162,4 +166,31 @@ const addRatings = async(req,res)=>{
     }
 }
 
-module.exports={createProduct,getAProduct,getAllProduct,updateProduct,deleteProduct,getfilteredProduct,addToWishlist,addRatings};
+//upload image
+const uploadImage=async(req,res)=>{
+    const urls =[];
+    try {
+        const prodId= req.query.prodid;
+        for(const file of req.files){
+            const img= file.path;
+            const {filename}=file;
+            await productImageResize(img,filename)
+            const response= await uploadOnCloudinary(path.join(__dirname, "../uploads/products",`resized_${filename}`));
+            urls.push(response);
+        }
+        const Product = await product.findByIdAndUpdate(
+            prodId,
+            {
+              $push: {
+                images: { $each: urls }
+              }
+            },
+            { new: true } 
+          );
+        res.json(Product);
+    } catch (error) {
+        throw new Error(error);
+    }
+}
+
+module.exports={createProduct,getAProduct,getAllProduct,updateProduct,deleteProduct,getfilteredProduct,addToWishlist,addRatings,uploadImage};
