@@ -37,8 +37,8 @@ var productSchema = new mongoose.Schema({
         enum:["Black","Red","Brown"],
     },
     brand:{
-        type:String,
-        enum:["Apple","Lenovo","Mivi"],
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"brands"
     },
     sold:{
         type:Number,

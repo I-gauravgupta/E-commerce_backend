@@ -17,7 +17,6 @@ router.get("/allproduct",jwtAuthMiddleware,isAdmin,getAllProduct);
 router.put("/update",jwtAuthMiddleware,isAdmin,updateProduct);
 router.delete("/delete",jwtAuthMiddleware,isAdmin,deleteProduct);
 router.get("/filtered",jwtAuthMiddleware,getfilteredProduct);
-router.post("/addtowishlist",jwtAuthMiddleware,addToWishlist);
 router.post("/addRatings",jwtAuthMiddleware,addRatings);
 router.post("/uploadimage",jwtAuthMiddleware,isAdmin,handlingImage,uploadImage);
 

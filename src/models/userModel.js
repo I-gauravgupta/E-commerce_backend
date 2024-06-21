@@ -27,16 +27,16 @@ var userSchema = new mongoose.Schema({
         type:Boolean,
         default:"false"
     },
-    cart: [{
+    cart: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'CartItem',
-    }],
+        ref: 'Cart',
+    },
     address: {
         type: String,
     },
     wishlist: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'WishlistItem',
+        ref: 'product',
     }],
 }, {
     timestamps: true, 

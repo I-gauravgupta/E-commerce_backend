@@ -50,11 +50,7 @@ const updateProduct = async(req,res)=>{
     if(isValidId(id)){
         try {
             if(req.body.title)  req.body.slug=slugify(req.body.title);
-            console.log(id);
-            const find =await product.findOne({_id:id});
-            console.log(find)
             const Product = await product.findOneAndUpdate({_id:id},req.body,{new:true});
-            console.log(Product)
             res.json(Product)
         } catch (error) {
             console.log(error);
@@ -65,7 +61,7 @@ const updateProduct = async(req,res)=>{
 
 //delete product
 const deleteProduct = async(req,res)=>{
-    const id = req.query.id;
+    const id = req.query.productid;
     try {
         const Product = await product.findByIdAndDelete(id)
         res.json(Product)
@@ -87,35 +83,11 @@ const getfilteredProduct = async(req,res)=>{
 
 }
 
-// add to wishlist
-const addToWishlist = async(req,res)=>{
-    const UserId = req.userPayload.payload.id;
-    const prodId = req.query.id;
-try {
-    const user = await User.findById(UserId);
-    const alreadyWishlist = user.wishlist.find((id)=>id.toString()===prodId);
-    if(alreadyWishlist){
-        const updateduser = await User.findByIdAndUpdate(UserId,
-                {$pull:{wishlist :prodId}}
-        ,{new:true});
-    res.json({msg:"item removed from wishlist"});
-    }
-    else{
-        const updateduser = await User.findByIdAndUpdate(UserId,
-            {$push:{wishlist :prodId}}
-                            ,{new:true});
-            res.json({msg:"item added to wishlist"});
-    }
-} catch (error) {
-    throw new Error(error);
-}    
-}
-
 // add ratings
 const addRatings = async(req,res)=>{
     const UserId = req.userPayload.payload.id;
-    const prodId = req.query.id;
-    const stars = req.query.stars;
+    const prodId = req.body.id; 
+    const stars = req.body.stars;
     const comment = req.body.comment;
     try {
         const Product = await product.findById(prodId);
@@ -145,13 +117,13 @@ const addRatings = async(req,res)=>{
                     }
                 }
             },{new:true})
-            const getallratings = await Product.findById(prodId);
+            const getallratings = await product.findById(prodId);
     let totalRating = getallratings.ratings.length;
     let ratingsum = getallratings.ratings
       .map((item) => item.star)
       .reduce((prev, curr) => prev + curr, 0);
     let actualRating = Math.round(ratingsum / totalRating);
-    let finalproduct = await Product.findByIdAndUpdate(
+    let finalproduct = await product.findByIdAndUpdate(
       prodId,
       {
         totalrating: actualRating,
@@ -193,4 +165,7 @@ const uploadImage=async(req,res)=>{
     }
 }
 
-module.exports={createProduct,getAProduct,getAllProduct,updateProduct,deleteProduct,getfilteredProduct,addToWishlist,addRatings,uploadImage};
+module.exports={createProduct,getAProduct,
+    getAllProduct,updateProduct,
+    deleteProduct,getfilteredProduct,
+    addRatings,uploadImage};

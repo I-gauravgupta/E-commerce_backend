@@ -4,6 +4,8 @@ const {hashPassword,validatePassword}= require("../utils/password")
 const {getToken}=require("../utils/jwtToken");
 const {forgetPasswordToken}=require("../utils/forgetPassToken")
 const sendMail=require("../utils/mail")
+const {Cart}=require("../models/cartModel");
+const {product}=require("../models/productModel")
 
 // creating user
 const createUser = async (req,res)=>{
@@ -100,15 +102,13 @@ const updateUser = async(req,res)=>{
     }
 }
 const blockUser = async(req,res)=>{
-    const id =req.userId;
-    const user = User.findOneAndUpdate({_id:id},{isBlocked:"true"},{new:true});
-    // console.log(user);
+    const id =req.query.id;
+    const user = await User.findOneAndUpdate({_id:id},{isBlocked:"true"},{new:true});
     res.json({msg:"userblocked"});
 }
 const unblockUser = async(req,res)=>{
-    const id =req.userId;
-    const user = User.findOneAndUpdate({_id:id},{isBlocked:"false"},{new:true});
-    // console.log(user);
+    const id =req.query.id;
+    const user = await User.findOneAndUpdate({_id:id},{isBlocked:"false"},{new:true});
     res.json({msg:"user un-blocked"});
 }
 
@@ -145,4 +145,116 @@ const changePassword=async(req,res)=>{
     }
 }
 
-module.exports= {createUser,loginUser,alluser,getUser,dltUser,updateUser,blockUser,unblockUser,sendForgetPasswordMail,changePassword};
+// add to wishlist
+const addToWishlist = async(req,res)=>{
+    const UserId = req.userPayload.payload.id;
+    const prodId = req.query.id;
+try {
+    const user = await User.findById(UserId);
+    const alreadyWishlist = user.wishlist.find((id)=>id.toString()===prodId);
+    if(alreadyWishlist){
+        const updateduser = await User.findByIdAndUpdate(UserId,
+                {$pull:{wishlist :prodId}}
+        ,{new:true});
+    res.json({msg:"item removed from wishlist"});
+    }
+    else{
+        const updateduser = await User.findByIdAndUpdate(UserId,
+            {$push:{wishlist :prodId}}
+                            ,{new:true});
+            res.json({msg:"item added to wishlist"});
+    }
+} catch (error) {
+    throw new Error(error);
+}    
+}
+
+//add to cart
+const addToCart = async(req,res)=>{
+    const userId = req.userPayload.payload.id; 
+    const prodId = req.query.id;
+    try {
+        let user = await User.findById(userId).exec(); 
+        if (!user.cart) {
+            const newCart = await Cart.create({ orderby: userId });
+            user = await User.findByIdAndUpdate(userId, { cart: newCart.id }, { new: true });
+        }
+        const cart = await Cart.findById(user.cart);
+        let productInCart = cart.products.find((product) => product.product.toString() === prodId);
+        if (productInCart) {
+            await Cart.findOneAndUpdate(
+                { _id: cart._id, "products.product": prodId },
+                { $inc: { "products.$.count": 1 } },
+            );
+        } else {
+            const item = await product.findById(prodId);
+            await Cart.findByIdAndUpdate(
+                cart._id,
+                {
+                    $push: {
+                        products: {
+                            product: prodId,
+                            count: 1,
+                            color: item.color,
+                            price: item.price,
+                        }
+                    }
+                }
+            );
+        }
+        const updatedCart = await Cart.findById(cart._id);
+        let cartTotal = 0;
+        updatedCart.products.forEach(product => {
+            cartTotal += product.count * product.price;
+        });
+        let totalAfterDiscount = cartTotal;
+        const finalCart = await Cart.findByIdAndUpdate(
+            cart._id,
+            { cartTotal, totalAfterDiscount },
+            { new: true }
+        );
+        res.json({ user, finalCart });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+// get cart
+const getCart= async(req,res)=>{
+    try {
+    const userId = req.userPayload.payload.id; 
+    let user = await User.findById(userId).exec(); 
+    const cart = await Cart.findById(user.cart);
+    res.json(cart)
+    } catch (error) {
+        res.json(error);
+    }
+}
+
+// get wishlist
+const getWishList= async(req,res)=>{
+    try {
+    const userId = req.userPayload.payload.id; 
+    let user = await User.findById(userId).exec(); 
+    res.json(user.wishlist)
+    } catch (error) {
+        res.json(error);
+    }
+}
+// save address
+const saveAddress = async(req,res)=>{
+    const id =req.userPayload.payload.id;
+    try {
+        const user = await User.findByIdAndUpdate(id,{address:req.body.address},{new:true});
+        res.json(user)
+    } catch (error) {
+        throw new Error(error);
+    }
+
+}
+
+module.exports= {createUser,loginUser,
+    alluser,getUser,dltUser,
+    updateUser,blockUser,unblockUser,
+    sendForgetPasswordMail,changePassword,addToCart,addToWishlist,
+    getWishList,getCart,saveAddress};

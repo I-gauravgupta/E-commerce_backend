@@ -2,10 +2,13 @@ require('dotenv').config()
 const express = require("express");
 const app = express();
 
+
 //connecting databse
 require("./db/connection")      
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 
 
 // connecting routes
@@ -22,7 +25,7 @@ app.use("/blogCategory",blog_category_router);
 app.use("/prodCategory",prod_category_router);
 app.use("/blog",blog_router)
 app.use("/product",product_router);
-app.use(user_router);
+app.use("/user",user_router);
 
 
 
