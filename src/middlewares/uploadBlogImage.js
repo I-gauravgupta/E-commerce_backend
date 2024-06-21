@@ -5,17 +5,17 @@ const fs = require("fs")
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null,path.join(__dirname,"../uploads/products") );
+    cb(null,path.join(__dirname,"../uploads/blogs") );
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)+".jpeg";
     cb(null, file.fieldname + '-' + uniqueSuffix);
   },
 });
-const upload = multer({ storage: storage });
+const uploadBlogImage = multer({ storage: storage });
 
-const productImageResize = async(img,filename)=>{
-  const outputDir = path.join(__dirname, "../uploads/products");
+const blogImageResize = async(img,filename)=>{
+  const outputDir = path.join(__dirname, "../uploads/blogs");
   const outputPath = path.join(outputDir,`resized_${filename}`);
   try {
     await sharp(img)
@@ -35,4 +35,4 @@ const productImageResize = async(img,filename)=>{
 
 }
 
-module.exports= {upload,productImageResize};
+module.exports= {uploadBlogImage,blogImageResize};

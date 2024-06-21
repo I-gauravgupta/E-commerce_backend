@@ -1,14 +1,14 @@
 const express =require("express");
 const router = express.Router();
 const{createProduct, getAProduct,getAllProduct, updateProduct, deleteProduct, getfilteredProduct, addToWishlist, addRatings,uploadImage}=require("../controllers/productCtrl");
-const{upload}=require("../middlewares/uploadImage");
 
 //middlewares
 const {isAdmin}=require("../middlewares/isadmin");
 const {jwtAuthMiddleware}=require("../middlewares/jwt_auth");
 
 //uploads
-const handlingImage=upload.array("images",10);
+const{uploadProductImage}=require("../middlewares/uploadProductImage");
+const handlingImage=uploadProductImage.array("images",10);
 
 //routes
 router.post("/createProduct",jwtAuthMiddleware,isAdmin,createProduct);

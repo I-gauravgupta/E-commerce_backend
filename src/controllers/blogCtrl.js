@@ -2,6 +2,9 @@ const {Blog} = require("../models/blogModel");
 const User = require("../models/userModel");
 const isValidId= require("../utils/idValidation");
 
+const {uploadOnCloudinary}=require("../utils/cloudinary");
+const{blogImageResize}=require("../middlewares/uploadBlogImage");
+
 const createBlog=async(req,res)=>{
     try {
         const blog = await new Blog(req.body);
@@ -163,6 +166,33 @@ const dislikeblog=async(req,res)=>{
         throw new Error(error);
     }
 }
+// upload image
+const uploadImage=async(req,res)=>{
+  const urls =[];
+  try {
+      const blogId= req.query.blogId;
+      for(const file of req.files){
+          const img= file.path;
+          const {filename}=file;
+          await blogImageResize(img,filename)
+          const response= await uploadOnCloudinary(path.join(__dirname, "../uploads/blogs",`resized_${filename}`));
+          urls.push(response);
+      }
+      const blog = await Blog.findByIdAndUpdate(
+          prodId,
+          {
+            $push: {
+              images: { $each: urls }
+            }
+          },
+          { new: true } 
+        );
+      res.json(blog);
+  } catch (error) {
+      throw new Error(error);
+  }
+}
 
 
-module.exports={createBlog,updateBlog,getBlog,getAllBlogs,deleteBlog,likeblog,dislikeblog};
+
+module.exports={createBlog,updateBlog,getBlog,getAllBlogs,deleteBlog,likeblog,dislikeblog,uploadImage};

@@ -4,7 +4,7 @@ const isValidId= require("../utils/idValidation");
 // const mongoose=require("mongoose")
 const {User}= require("../models/userModel")
 const {uploadOnCloudinary}=require("../utils/cloudinary")
-const {productImageResize} =require("../middlewares/uploadImage");
+const {productImageResize} =require("../middlewares/uploadProductImage");
 const { response } = require("express");
 const path = require("path")
 
