@@ -6,6 +6,7 @@ const {forgetPasswordToken}=require("../utils/forgetPassToken")
 const sendMail=require("../utils/mail")
 const {Cart}=require("../models/cartModel");
 const {product}=require("../models/productModel")
+const{Coupan}=require("../models/couponModel");
 
 // creating user
 const createUser = async (req,res)=>{
@@ -223,11 +224,73 @@ const addToCart = async(req,res)=>{
 const getCart= async(req,res)=>{
     try {
     const userId = req.userPayload.payload.id; 
-    let user = await User.findById(userId).exec(); 
-    const cart = await Cart.findById(user.cart);
-    res.json(cart)
+    let user = await User.findById(userId).exec();
+    if(user.cart && user.cart !=null){
+        const cart = await Cart.findById(user.cart);
+        res.json(cart)
+    } 
+    else{
+        console.log("Creating a new cart.");
+            const newCart = await Cart.create({ orderBy: userId });
+            user = await User.findByIdAndUpdate(userId, { cart: newCart._id }, { new: true }).exec();
+            res.json(newCart);
+    }
     } catch (error) {
         res.json(error);
+    }
+}
+
+//empy cart
+const emptyCart = async(req,res)=>{
+    const userId = req.userPayload.payload.id;
+    try {
+        let user = await User.findById(userId).exec();
+        if(user.cart){
+            await Cart.findByIdAndDelete(user.cart);
+            await User.findByIdAndUpdate(userId,{cart:null})
+
+            res.json({msg:"cart is empty"})       // return null
+        }
+        } catch (error) {
+            res.json(error);
+        }
+
+}
+
+const applyCoupan = async(req,res)=>{
+    const coupanName= req.query.coupan;
+    const userId = req.userPayload.payload.id;
+    try {
+        const coupan = await Coupan.findOne({coupanName});
+        if(!coupan) return res.json({msg:"inavlid Coupan"});
+        const discount = coupan.discount;
+        const user = await User.findById(userId);
+        const cart = await Cart.findById(user.cart);
+        if(cart.isCoupanApplied==1) return res.json("one coupan already Applied");
+        const totalAfterDiscount = cart.cartTotal-discount;
+        const finalTotal = Math.max(totalAfterDiscount, 0);
+        const updatedCart = await Cart.findByIdAndUpdate(
+            cart._id,
+            {totalAfterDiscount: finalTotal ,isCoupanApplied:true},
+            { new: true } 
+        ).exec();
+        res.json(updatedCart)
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+
+// remove coupan 
+const removeCoupan = async(req,res)=>{
+    const userId = req.userPayload.payload.id;
+    try {
+    const user = await User.findById(userId);
+    const cart = await Cart.findById(user.cart);
+    if(cart){
+        const updatedCart = await Cart.findByIdAandUpdate(user.cart,{isCoupanApplied:false,totalAfterDiscount:cart.cartTotal},{new:true});
+    }
+    } catch (error) {
+        throw new Error(error);
     }
 }
 
@@ -257,4 +320,4 @@ module.exports= {createUser,loginUser,
     alluser,getUser,dltUser,
     updateUser,blockUser,unblockUser,
     sendForgetPasswordMail,changePassword,addToCart,addToWishlist,
-    getWishList,getCart,saveAddress};
+    getWishList,getCart,saveAddress,emptyCart,applyCoupan,removeCoupan};
