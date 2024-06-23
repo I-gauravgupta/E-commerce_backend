@@ -13,12 +13,19 @@ var orderSchema = new mongoose.Schema(
         color: String,
       },
     ],
-    paymentIntent: {},
+    paymentIntent: {
+      id:String,
+      paymentMethod:String,
+      amount:Number,
+      created:Date,
+    },
+    paymentStatus:Boolean,
     orderStatus: {
       type: String,
       default: "Not Processed",
       enum: [
         "Not Processed",
+        "Payment Done",
         "Cash on Delivery",
         "Processing",
         "Dispatched",
